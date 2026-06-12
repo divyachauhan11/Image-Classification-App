@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Classifier - Pro Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        
+        /* ==========================================
+           🌟 PREMIUM DARK GLASSMORPHISM BACKGROUND
+           ========================================== */
+        body { 
+            background: radial-gradient(circle at top left, #0d123d 0%, #030303 100%);
+            color: #ffffff; 
+            display: flex; 
+            min-height: 100vh; 
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            filter: blur(150px);
+            z-index: -1;
+            opacity: 0.5;
+        }
+        body::before { background: #2563eb; top: -50px; left: 10%; }
+        body::after { background: #06b6d4; bottom: -50px; right: 10%; }
+        
+        /* ==========================================
+           🛡️ SIDEBAR CSS
+           ========================================== */
+        .sidebar { 
+            width: 280px; 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(15px); 
+            border-right: 1px solid rgba(255, 255, 255, 0.1); 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            border-radius: 0 20px 20px 0;
+            box-shadow: 10px 0 30px rgba(0,0,0,0.2);
+            transition: width 0.3s ease;
+        }
+
+        .sidebar-header { 
+            padding: 30px 20px; 
+            font-size: 20px; 
+            font-weight: 600; 
+            color: #ffffff; 
+            display: flex; 
+            align-items: center; 
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .sidebar-header i { 
+            font-size: 24px; 
+            color: #06b6d4; 
+            filter: drop-shadow(0 0 5px #06b6d4); 
+        }
+        
+        .user-info { padding: 10px 20px 20px; text-align: center; border-bottom: 1px solid rgba(255, 255, 255, 0.1); }
+        .avatar-placeholder { 
+            width: 65px; 
+            height: 65px; 
+            background: #e2e8f0; 
+            border-radius: 50%; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            margin: 0 auto 10px; 
+            font-size: 28px; 
+            color: #64748b; 
+        }
+        .user-email { font-size: 13px; color: #a1a1aa; word-break: break-all; margin-bottom: 3px; }
+        .badge { 
+            background: #062b59; 
+            color: white; 
+            font-size: 11px; 
+            padding: 4px 10px; 
+            border-radius: 12px; 
+            font-weight: 600; 
+            display: inline-block; 
+            box-shadow: 0 0 10px rgba(6, 43, 89, 0.5);
+        }
+
+        .nav-links { padding: 30px 0; flex-grow: 1; }
+        .nav-item { 
+            padding: 14px 28px; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            color: #a1a1aa; 
+            text-decoration: none; 
+            font-size: 14px; 
+            transition: 0.2s; 
+            font-weight: 500;
+            border-left: 4px solid transparent;
+        }
+        .nav-item:hover, .nav-item.active { 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #ffffff; 
+            border-left: 4px solid #06b6d4; 
+            transform: translateX(3px);
+        }
+        .nav-item i { font-size: 16px; min-width: 20px; text-align: center;}
+        .nav-item.active i { color: #06b6d4; filter: drop-shadow(0 0 5px #06b6d4); }
+        
+        .sidebar-footer { padding: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+        .logout-btn { 
+            display: flex; 
+            align-items: center; 
+            gap: 10px; 
+            background: #fee2e2; 
+            color: #ef4444; 
+            padding: 12px 15px; 
+            border-radius: 10px; 
+            text-decoration: none; 
+            font-size: 14px; 
+            font-weight: 600; 
+            justify-content: center; 
+            transition: 0.2s;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.2);
+        }
+        .logout-btn:hover { background: #fecaca; transform: scale(1.02); }
+
+        /* ==========================================
+           🌟 MAIN CONTENT CSS 
+           ========================================== */
+        .main-content { margin-left: 280px; width: calc(100% - 280px); padding: 50px; }
+        .header-title { 
+            font-size: 28px; 
+            font-weight: 600; 
+            color: #ffffff; 
+            margin-bottom: 10px; 
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+        }
+        .header-sub-title { font-size: 16px; color: #a1a1aa; margin-bottom: 40px;}
+        
+        .grid-container { display: grid; grid-template-columns: 1fr; gap: 40px; max-width: 950px; }
+        
+        .card { 
+            background: rgba(255, 255, 255, 0.05); 
+            backdrop-filter: blur(15px); 
+            padding: 40px; 
+            border-radius: 20px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 15px 40px rgba(0,0,0,0.2); }
+        
+        /* ==========================================
+           📤 UPLOAD CARD STYLING 
+           ========================================== */
+        .upload-card { text-align: center; }
+        .upload-title { font-size: 20px; font-weight: 600; margin-bottom: 10px; color: #ffffff; }
+        
+        .upload-area {
+            border: 2px dashed rgba(255, 255, 255, 0.15);
+            padding: 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .upload-area:hover, .upload-area.dragover { border: 2px dashed #06b6d4; background: rgba(6, 182, 212, 0.05); }
+        .upload-area:hover .fa-cloud-arrow-up, .upload-area.dragover .fa-cloud-arrow-up { color: #06b6d4; filter: drop-shadow(0 0 5px #06b6d4); }
+        .upload-area .fa-cloud-arrow-up { font-size: 40px; color: #cbd5e1; margin-bottom: 10px; }
+
+        .file-input { display: none; }
+        
+        .upload-btn { 
+            background: linear-gradient(135deg, #06b6d4 0%, #2563eb 100%); 
+            color: white; 
+            padding: 12px 30px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            display: inline-block; 
+            font-weight: 600; 
+            margin-top: 5px; 
+            transition: 0.3s; 
+            font-size: 15px;
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+        .upload-btn:hover { 
+            box-shadow: 0 5px 25px rgba(6, 182, 212, 0.6); 
+            transform: scale(1.03); 
+        }
+        
+        #preview { 
+            max-width: 100%; 
+            max-height: 400px; 
+            margin-top: 25px; 
+            border-radius: 12px; 
+            display: none; 
+            margin-left: auto; 
+            margin-right: auto;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .result-box { 
+            background: rgba(16, 185, 129, 0.1); 
+            border: 1px solid #10b981; 
+            padding: 20px 25px; 
+            border-radius: 10px; 
+            margin-top: 25px; 
+            display: none; 
+            font-size: 16px; 
+            color: #34d399; 
+            text-align: left;
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
+        }
+        .result-box i { color: #facc15; font-size: 18px; margin-right: 8px;} 
+        .result-box strong { font-weight: 600; color: #ffffff; } 
+
+        .loader { 
+            display: none; 
+            margin-top: 15px; 
+            font-weight: 500; 
+            color: #a1a1aa; 
+            font-size: 14px;
+        }
+        .loader i { color: #06b6d4; }
+        
+        /* ==========================================
+           📊 HISTORY CARD STYLING 
+           ========================================== */
+        #recent-history .history-header-wrapper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        #recent-history .history-header-title { font-size: 18px; font-weight: 600; color: #ffffff; }
+        #recent-history .history-view-icons { display: flex; gap: 10px; color: #a1a1aa; }
+        #recent-history .history-view-icons i { cursor: pointer; transition: 0.2s;}
+        #recent-history .history-view-icons i:hover { color: #ffffff; }
+        
+        .history-table { width: 100%; border-collapse: collapse; text-align: left; table-layout: fixed;}
+        .history-table th { 
+            background: rgba(255, 255, 255, 0.05); 
+            color: #64748b; 
+            padding: 12px 15px; 
+            font-size: 13px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1); 
+        }
+        .history-table th i { color: #06b6d4; margin-right: 5px; } 
+        
+        .history-table td { padding: 16px 15px; font-size: 14px; color: #ffffff; border-bottom: 1px solid rgba(255, 255, 255, 0.1); word-break: break-all;}
+        .history-table tr:hover td { background: rgba(255, 255, 255, 0.02); }
+        .history-table td strong { font-weight: 500; }
+        
+        .no-data { text-align: center; color: #94a3b8; padding: 25px; font-style: italic; }
+        
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <i class="fa-solid fa-images"></i> Image Classifier
+        </div>
+        
+        <div class="user-info">
+            <div class="avatar-placeholder"><i class="fa-regular fa-user"></i></div>
+            <div class="user-email">{{ email }}</div>
+            <div class="badge">Pro Tier</div> 
+        </div>
+
+        <div class="nav-links">
+            <a href="#" class="nav-item active"><i class="fa-solid fa-house"></i> Overview</a>
+            <a href="#recent-history" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> My History</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-key"></i> API Keys</a>
+            <a href="#" class="nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+        </div>
+
+        <div class="sidebar-footer">
+            <a href="/logout" class="logout-btn"><i class="fa-solid fa-right-from-bracket"></i> Sign Out</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="header-title">Welcome back, {{ username }} 👋</h1>
+        <p class="header-sub-title">Let's analyze an image and unlock AI insights.</p>
+        
+        <div class="grid-container">
+            
+            <div class="card upload-card">
+                <div class="upload-title">Image Upload</div>
+                
+                <div class="upload-area" id="upload-area">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <p style="color: #a1a1aa; font-size: 14px; margin-top: 10px;">Supports JPG, PNG, and JPEG</p>
+                    <label for="image-upload" class="upload-btn">Browse Files</label>
+                </div>
+                
+                <input type="file" id="image-upload" class="file-input" accept="image/*">
+                
+                <img id="preview" alt="Image Preview">
+                <div class="loader" id="loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Processing with Generative AI...</div>
+                
+                <div class="result-box" id="result-box">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> <strong>AI Detection:</strong> <span id="result-text"></span>
+                </div>
+            </div>
+
+            <div class="card" id="recent-history">
+                <div class="history-header-wrapper">
+                    <div class="history-header-title">Recent History</div>
+                    <div class="history-view-icons">
+                        <i class="fa-solid fa-table-grid"></i>
+                        <i class="fa-solid fa-list-ul"></i>
+                    </div>
+                </div>
+                
+                <div style="overflow-x: auto;">
+                    <table class="history-table" id="history-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25%;"><i class="fa-solid fa-calendar-days"></i> Date & Time</th>
+                                <th style="width: 75%;"><i class="fa-solid fa-file-signature"></i> Image Path/Result</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-tbody">
+                            {% for row in history %}
+                            <tr>
+                                <td>{{ row['timestamp'] }}</td>
+                                <td><strong>{{ row['result'] }}</strong></td>
+                            </tr>
+                            {% else %}
+                            <tr id="no-history-row">
+                                <td colspan="2" class="no-data">No analysis history yet. Start by uploading an image above!</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageUpload = document.getElementById('image-upload');
+        const uploadArea = document.getElementById('upload-area');
+        const preview = document.getElementById('preview');
+        const loader = document.getElementById('loader');
+        const resultBox = document.getElementById('result-box');
+        const resultText = document.getElementById('result-text');
+        const historyTbody = document.getElementById('history-tbody');
+        const noHistoryRow = document.getElementById('no-history-row');
+
+        // Nav Interaction Logic
+        const navItems = document.querySelectorAll('.nav-item');
+        navItems.forEach(item => {
+            item.addEventListener('click', function(e) {
+                if (!this.classList.contains('logout-btn')) {
+                    navItems.forEach(nav => nav.classList.remove('active'));
+                    this.classList.add('active');
+
+                    const targetId = this.getAttribute('href');
+                    if (targetId && targetId.startsWith('#') && targetId.length > 1) {
+                        e.preventDefault(); 
+                        const targetElement = document.querySelector(targetId);
+                        if (targetElement) {
+                            targetElement.scrollIntoView({ behavior: 'smooth' });
+                        }
+                    }
+                }
+            });
+        });
+
+        // Handling the file upload
+        imageUpload.addEventListener('change', function() {
+            analyzeImage(this.files[0]);
+        });
+
+        // Drag-and-drop support
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            analyzeImage(e.dataTransfer.files[0]);
+        });
+
+        async function analyzeImage(file) {
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.style.display = 'block';
+                resultBox.style.display = 'none';
+                loader.style.display = 'block';
+
+                const formData = new FormData();
+                formData.append('image', file);
+
+                try {
+                    const response = await fetch('/analyze', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+                    
+                    loader.style.display = 'none';
+                    resultText.innerHTML = `${data.result}`;
+                    resultBox.style.display = 'block';
+
+                    if (noHistoryRow) {
+                        noHistoryRow.style.display = 'none';
+                    }
+
+                    // Dynamically add the new row to the history table (latest on top)
+                    const newRow = document.createElement('tr');
+                    newRow.innerHTML = `
+                        <td>${data.timestamp}</td>
+                        <td><strong>${data.result}</strong></td>
+                    `;
+                    historyTbody.insertBefore(newRow, historyTbody.firstChild);
+
+                } catch (error) {
+                    loader.style.display = 'none';
+                    alert("Something went wrong!");
+                }
+            }
+        }
+    </script>
+</body>
+</html>
